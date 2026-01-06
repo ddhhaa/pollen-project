@@ -1,1 +1,44 @@
-<p>hello world</p>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Прогноз пыльцы</title>
+</head>
+<body>
+
+    <h1>Прогноз концентрации пыльцы</h1>
+
+    <div>
+        <a href="?period=day">День</a> |
+        <a href="?period=week">Неделя</a> |
+        <a href="?period=month">Месяц</a>
+    </div>
+
+    <canvas id="pollenChart"></canvas>
+
+    <h2>Таблица данных</h2>
+
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>Город</th>
+            <th>Тип пыльцы</th>
+            <th>Дата</th>
+            <th>Концентрация</th>
+        </tr>
+
+        {% for item in data %}
+        <tr>
+            <td>{{ item.city }}</td>
+            <td>{{ item.pollen_type.name }}</td>
+            <td>{{ item.date }}</td>
+            <td>{{ item.concentration }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">Данных нет</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>
