@@ -7,6 +7,11 @@
 <body>
 
     <h1>Прогноз концентрации пыльцы</h1>
+    <canvas id="pollenChart" width="600" height="300"></canvas>
+
+    <div>
+        <canvas id="pollenChart"></canvas>
+    </div>
 
     <div>
         <a href="?period=day">День</a> |
@@ -14,7 +19,7 @@
         <a href="?period=month">Месяц</a>
     </div>
 
-    <canvas id="pollenChart"></canvas>
+    {{ chart_data|json_script:"chart-data" }}
 
     <h2>Таблица данных</h2>
 
@@ -39,6 +44,61 @@
         </tr>
         {% endfor %}
     </table>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Получение данных из скрытого элемента
+        const chartDataElement = document.getElementById('chart-data');
+        console.log(chartDataElement);
+        if (chartDataElement) {
+
+            const chartData = JSON.parse(chartDataElement.textContent);
+            console.log(typeof chartData);
+            // Подготовка данных
+            const labels = chartData.map(item => item.date);
+            const values = chartData.map(item => item.value);
+
+            console.log(values);
+            
+            // Создание графика
+            const ctx = document.getElementById('pollenChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Концентрация пыльцы',
+                        data: values,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderWidth: 2,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Концентрация (grains/m³)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Дата'
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            console.error('Элемент с данными для графика не найден');
+        }
+    </script>
 
 </body>
 </html>

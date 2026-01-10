@@ -14,7 +14,7 @@ class UserProfile(models.Model):
     allergens = models.ManyToManyField(
         'PollenType',
         through='UserAllergy',
-        related_name='allergic_users',
+        related_name='profiles',
         verbose_name="Аллергены пользователя",
         blank=True
     )
