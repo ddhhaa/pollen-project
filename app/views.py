@@ -1,16 +1,18 @@
 from django.shortcuts import render
 from .models import PollenData
+from .open_meteo import fetch_pollen_data
 
 
 def home(request):
+
     period = request.GET.get('period', 'day')
 
     if period == 'week':
-        data = PollenData.objects.all()[:7]
+        data = PollenData.objects.order_by('-date', '-hour')[:7]
     elif period == 'month':
-        data = PollenData.objects.all()[:30]
+        data = PollenData.objects.order_by('-date', '-hour')[:30]
     else:
-        data = PollenData.objects.all()[:1]
+        data = PollenData.objects.order_by('-date', '-hour')[:1]
 
     chart_data = [
         {

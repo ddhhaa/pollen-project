@@ -50,16 +50,13 @@
     <script>
         // Получение данных из скрытого элемента
         const chartDataElement = document.getElementById('chart-data');
-        console.log(chartDataElement);
         if (chartDataElement) {
 
             const chartData = JSON.parse(chartDataElement.textContent);
-            console.log(typeof chartData);
             // Подготовка данных
             const labels = chartData.map(item => item.date);
             const values = chartData.map(item => item.value);
 
-            console.log(values);
             
             // Создание графика
             const ctx = document.getElementById('pollenChart').getContext('2d');
@@ -95,8 +92,6 @@
                     }
                 }
             });
-        } else {
-            console.error('Элемент с данными для графика не найден');
         }
     </script>
 
