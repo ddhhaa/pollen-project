@@ -1,7 +1,8 @@
-from django.shortcuts import render
-from .models import PollenData
+from django.shortcuts import render, redirect
+from .models import PollenData, UserProfile
 from .open_meteo import fetch_pollen_data
-
+from django.contrib.auth import login
+from .forms import RegisterForm
 
 def home(request):
 
@@ -29,3 +30,23 @@ def home(request):
     }
 
     return render(request, "home.html", context)
+
+def register(request):
+    if request.method == "POST":
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+
+            # создаём профиль
+            UserProfile.objects.create(
+                user=user,
+                age=form.cleaned_data.get("age"),
+                city=form.cleaned_data.get("city"),
+            )
+
+            login(request, user)
+            return redirect("home")
+    else:
+        form = RegisterForm()
+
+    return render(request, "register.html", {"form": form})

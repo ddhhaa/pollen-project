@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Регистрация</title>
+
+  <link rel="stylesheet" href="{% static 'app/forms.css' %}">
+</head>
+<body>
+
+<h2>Регистрация</h2>
+
+<form method="post" class="register-form">
+  {% csrf_token %}
+
+  {% for field in form %}
+    <div class="form-field">
+      <label>{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}
+        <div class="error">{{ field.errors }}</div>
+      {% endif %}
+    </div>
+  {% endfor %}
+
+  <button type="submit">Зарегистрироваться</button>
+</form>
+
+</body>
+</html>
