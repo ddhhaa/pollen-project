@@ -1,0 +1,42 @@
+<!-- templates/login.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход</title>
+    <link rel="stylesheet" href="{% static 'app/style.css' %}">
+    <link rel="stylesheet" href="{% static 'app/forms.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h2>Вход в систему</h2>
+        
+        <form method="post" class="register-form">
+            {% csrf_token %}  <!-- ← ДОБАВЬТЕ ЭТУ СТРОКУ! -->
+            
+            <div class="form-field">
+                <label>Логин</label>
+                {{ form.username }}
+            </div>
+            
+            <div class="form-field">
+                <label>Пароль</label>
+                {{ form.password }}
+            </div>
+            
+            {% if form.errors %}
+                <div class="error">
+                    Неверный логин или пароль
+                </div>
+            {% endif %}
+            
+            <button type="submit">Войти</button>
+        </form>
+        
+        <p style="text-align: center; margin-top: 20px;">
+            Нет аккаунта? <a href="{% url 'register' %}">Зарегистрируйтесь</a>
+        </p>
+    </div>
+</body>
+</html>

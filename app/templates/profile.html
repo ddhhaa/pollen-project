@@ -1,0 +1,48 @@
+<!-- templates/profile.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет</title>
+    <link rel="stylesheet" href="{% static 'app/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h2>Личный кабинет</h2>
+        
+        <div class="profile-info">
+            <p><strong>Имя пользователя:</strong> {{ user.username }}</p>
+            {% if user_profile.city %}
+                <p><strong>Город:</strong> {{ user_profile.city }}</p>
+            {% endif %}
+            {% if user_profile.age %}
+                <p><strong>Возраст:</strong> {{ user_profile.age }}</p>
+            {% endif %}
+        </div>
+        
+        <h3>Мои аллергии</h3>
+        <form method="post">
+            {% csrf_token %}  <!-- ← ДОБАВЬТЕ ЭТУ СТРОКУ! -->
+            
+            <div class="allergies-list">
+                {% for pollen in all_pollen %}
+                    <label class="checkbox-label">
+                        <input type="checkbox" 
+                               name="allergies" 
+                               value="{{ pollen.id }}"
+                               {% if pollen in user_allergies %}checked{% endif %}>
+                        {{ pollen.name }} ({{ pollen.get_category_display }})
+                    </label>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn-save">Сохранить аллергии</button>
+        </form>
+        
+        <div style="margin-top: 30px;">
+            <a href="{% url 'home' %}" class="btn-back">← На главную</a>
+            <a href="{% url 'logout' %}" class="btn-logout">Выйти</a>
+        </div>
+    </div>
+</body>
+</html>
