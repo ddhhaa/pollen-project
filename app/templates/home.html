@@ -1,36 +1,45 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>Прогноз пыльцы</title>
+    <link rel="stylesheet" href="{% static 'app/css/style.css' %}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Handjet:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div style="text-align: right; padding: 10px; background: #f5f5f5;">
-    {% if user.is_authenticated %}
-        Привет, {{ user.username }}! 
-        <a href="{% url 'profile' %}">Кабинет</a> | 
-        <a href="{% url 'logout' %}">Выйти</a>
-    {% else %}
-        <a href="{% url 'login' %}">Войти</a> | 
-        <a href="{% url 'register' %}">Регистрация</a>
-    {% endif %}
+    <div class="nav-bar">
+        {% if user.is_authenticated %}
+        <span class="nav-greeting">Привет, {{ user.username }}!</span>
+        <div class="nav-links">
+            <a href="{% url 'profile' %}">Кабинет</a>
+            <a href="{% url 'logout' %}">Выйти</a>
+        </div>
+        {% else %}
+            <div class="nav-links">
+                <a href="{% url 'login' %}">Войти</a>
+                <a href="{% url 'register' %}">Регистрация</a>
+            </div>
+        {% endif %}
     </div>
 
-    <h1>Прогноз концентрации пыльцы</h1>
-    <canvas id="pollenChart" width="600" height="300"></canvas>
+    <div class="chart-container">
+        <h1>Прогноз концентрации пыльцы</h1>
+        <h2>Сегодня {{ today_date|date:"d.m.Y" }}</h2>
+        <div class="chart-wrapper">
+            <canvas id="pollenChart" width="600" height="300"></canvas>
+        </div>
 
-    <div>
-        <canvas id="pollenChart"></canvas>
+        <div class="period">
+            <a href="?period=day">День</a> |
+            <a href="?period=week">Неделя</a> |
+            <a href="?period=month">Месяц</a>
+        </div>
     </div>
-
-    <div>
-        <a href="?period=day">День</a> |
-        <a href="?period=week">Неделя</a> |
-        <a href="?period=month">Месяц</a>
-    </div>
-
-    {{ chart_data|json_script:"chart-data" }}
 
     <h2>Таблица данных</h2>
 
@@ -56,55 +65,11 @@
         {% endfor %}
     </table>
 
+    {{ chart_data|json_script:"chart-data" }}
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'app/js/pollen-chart.js' %}"></script>
 
-    <script>
-        // Получение данных из скрытого элемента
-        const chartDataElement = document.getElementById('chart-data');
-        if (chartDataElement) {
-
-            const chartData = JSON.parse(chartDataElement.textContent);
-            // Подготовка данных
-            const labels = chartData.map(item => item.date);
-            const values = chartData.map(item => item.value);
-
-            
-            // Создание графика
-            const ctx = document.getElementById('pollenChart').getContext('2d');
-            const chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Концентрация пыльцы (grains/m³)',
-                        data: values,
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderWidth: 2,
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Концентрация (grains/m³)'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Дата'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    </script>
 
 </body>
 </html>

@@ -1,19 +1,21 @@
-<!-- templates/login.html -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>Вход</title>
-    <link rel="stylesheet" href="{% static 'app/style.css' %}">
-    <link rel="stylesheet" href="{% static 'app/forms.css' %}">
+    <link rel="stylesheet" href="{% static 'app/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'app/css/forms.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Handjet:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <h2>Вход в систему</h2>
         
         <form method="post" class="register-form">
-            {% csrf_token %}  <!-- ← ДОБАВЬТЕ ЭТУ СТРОКУ! -->
+            {% csrf_token %}
             
             <div class="form-field">
                 <label>Логин</label>
