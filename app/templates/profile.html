@@ -31,9 +31,11 @@
                 {% for pollen in all_pollen %}
                     <label class="checkbox-label">
                         <input type="checkbox" 
-                               name="allergies" 
-                               value="{{ pollen.id }}"
-                               {% if pollen in user_allergies %}checked{% endif %}>
+                            name="allergies" 
+                            value="{{ pollen.id }}"
+                            {% for allergy in user_allergies %}
+                                {% if allergy.pollen_type.id == pollen.id %}checked{% endif %}
+                            {% endfor %}>
                         {{ pollen.name }} ({{ pollen.get_category_display }})
                     </label>
                 {% endfor %}

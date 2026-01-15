@@ -4,10 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const chartData = JSON.parse(chartDataElement.textContent);
 
-    const labels = chartData.map(item => {
-        const [year, month, day] = item.date.split('-');
-        return `${day}.${month}`;
-    });
+    const labels = chartData.map(item => item.label);
 
     const values = chartData.map(item => item.value);
 
