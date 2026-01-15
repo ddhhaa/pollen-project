@@ -8,7 +8,7 @@ from datetime import date, timedelta
 from django.db.models import Avg
 from collections import defaultdict
 
-TEST_DATE = date(2025, 4, 15)
+TEST_DATE = date(2025, 4, 25)
 TEST_HOUR = 10
 
 @login_required(login_url='/login/')
@@ -46,66 +46,48 @@ def home(request):
 
     data = data.order_by('date', 'hour')
 
-    # ---------- данные для графика ----------
+    context = {}
+
+    # ---------- данные для графика по типам пыльцы ----------
     chart_data = []
 
-    if period == 'day':
-        # Создаем словарь для хранения данных по часам
-        hour_data = defaultdict(list)
-        
-        # Собираем данные по часам
-        for item in data.filter(date=today):
-            hour_data[item.hour].append(item.concentration)
-        
-        # Определяем стартовый час
-        available_hours = sorted(hour_data.keys())
-        start_hour = current_hour if current_hour in available_hours else (available_hours[0] if available_hours else current_hour)
-        
-        # Формируем данные для графика
-        for i in range(6):
-            hour = start_hour + i
-            concentrations = hour_data.get(hour, [])
-            
-            # Если есть данные для этого часа, берем среднее (или первое значение)
-            if concentrations:
-                # Для одного типа пыльцы - первое значение, для нескольких - среднее
-                value = sum(concentrations) / len(concentrations)
-            else:
-                value = 0
-            
-            chart_data.append({
-                "label": f"{hour:02d}:00",
-                "value": round(value, 2),
-                "date": today,
-                "hour": hour
-            })
+    for pt in PollenType.objects.all():
+        type_name = pt.name
+        color = pt.color
+        points = []
 
-    else:
-        # Создаем словарь для хранения данных по дням
-        day_data = defaultdict(list)
-        
-        # Собираем данные по дням
-        for item in data:
-            day_data[item.date].append(item.concentration)
-        
-        # Формируем данные для графика по дням
-        current_date = start_date
-        while current_date <= end_date:
-            concentrations = day_data.get(current_date, [])
-            
-            if concentrations:
-                # Средняя концентрация за день
-                value = sum(concentrations) / len(concentrations)
-            else:
-                value = 0
-            
-            chart_data.append({
-                "label": current_date.strftime('%d.%m'),
-                "value": round(value, 2),
-                "date": current_date
-            })
-            
-            current_date += timedelta(days=1)
+        if period == 'day':
+            # данные по часам
+            day_data = data.filter(pollen_type=pt, date=today, hour__gte=current_hour, hour__lte=current_hour+5).order_by('hour')
+            for rec in day_data:
+                points.append({
+                    'x': f"{rec.hour:02d}:00",
+                    'y': rec.concentration
+                })  
+
+        else:
+            # среднее за день
+            current_date = start_date
+            while current_date <= end_date:
+                day_records = data.filter(pollen_type=pt, date=current_date)
+                concentrations = [r.concentration for r in day_records]
+                value = sum(concentrations)/len(concentrations) if concentrations else 0
+                points.append({
+                    'x': current_date.strftime('%d.%m'),
+                    'y': value
+                })
+                current_date += timedelta(days=1)
+
+        chart_data.append({
+            'label': type_name,
+            'data': points,
+            'borderColor': color,
+            'backgroundColor': color,
+            'fill': False
+        })
+
+    context['chart_data'] = chart_data
+
 
     # ---------- пользователь ----------
     user_profile = UserProfile.objects.get(user=request.user)

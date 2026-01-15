@@ -2,29 +2,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const chartDataElement = document.getElementById('chart-data');
     if (!chartDataElement) return;
 
-    const chartData = JSON.parse(chartDataElement.textContent);
-
-    const labels = chartData.map(item => item.label);
-
-    const values = chartData.map(item => item.value);
+    const datasets = JSON.parse(chartDataElement.textContent);
 
     const ctx = document.getElementById('pollenChart').getContext('2d');
 
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels,
-            datasets: [{
-                label: 'Концентрация пыльцы (grains/m³)',
-                data: values,
-                borderWidth: 2,
-                tension: 0.1
-            }]
+            datasets: datasets
         },
         options: {
             responsive: false,
+            parsing: { xAxisKey: 'x', yAxisKey: 'y' },
             scales: {
-                y: { beginAtZero: true }
+                x: {
+                    title: { display: true, text: 'Время' }
+                },
+                y: {
+                    title: { display: true, text: 'Концентрация пыльцы' },
+                    beginAtZero: true
+                }
             }
         }
     });
