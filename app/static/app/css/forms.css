@@ -1,3 +1,12 @@
+body {
+    margin: 0;
+    padding: 0;
+    padding-top: 20px;
+    width: 100%;
+    background-color: #E9E9C7; 
+    font-family: 'Arsenal', monospace;
+}
+
 h2 {
   text-align: center;
   color: #333;

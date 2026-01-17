@@ -1,10 +1,10 @@
 body {
     margin: 0;
     padding: 0;
-    padding-top: 20px;
+    padding-top: 30px;
     width: 100%;
-    background-color: #E9E9C7; 
-    font-family: 'Handjet', monospace;
+    background-color: #FFFFDF; 
+    font-family: 'Arsenal', monospace;
 }
 
 h1{
@@ -17,13 +17,18 @@ h1{
     top: 0; 
     left: 0; 
     width: 100%;
-    height: 20px;
+    height: 30px;
     z-index: 1000;
 
     text-align: right;
-    background: #556429;
+    background: #6bac55;
     border-bottom: 1px solid #ddd;
-    font-family: 'Handjet', monospace;
+    font-family: 'Arsenal', monospace;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 50px;
 }
 
 .nav-links {
@@ -31,7 +36,7 @@ h1{
 }
 
 .nav-links a {
-    color: #d8da66;
+    color: #feffb8;
     text-decoration: none;
     margin: 0 10px;
     padding: 5px 10px;
@@ -43,12 +48,6 @@ h1{
 .nav-links a:hover {
     background-color: #4CAF50;
     color: white;
-}
-
-.nav-greeting {
-    margin-right: 15px;
-    color: #d8da66;
-    font-weight: 500;
 }
 
 .nav-bar a {
@@ -64,3 +63,6 @@ h1{
     text-align: center;
 }
 
+.chart-container h2{
+    text-align: center;
+}

@@ -8,13 +8,12 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Handjet:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Arsenal:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <div class="nav-bar">
         {% if user.is_authenticated %}
-        <span class="nav-greeting">Привет, {{ user.username }}!</span>
         <div class="nav-links">
             <a href="{% url 'profile' %}">Кабинет</a>
             <a href="{% url 'logout' %}">Выйти</a>

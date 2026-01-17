@@ -5,9 +5,10 @@
     <meta charset="UTF-8">
     <title>Личный кабинет</title>
     <link rel="stylesheet" href="{% static 'app/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'app/css/profile.css' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Handjet:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Arsenal:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
@@ -36,14 +37,14 @@
                             {% for allergy in user_allergies %}
                                 {% if allergy.pollen_type.id == pollen.id %}checked{% endif %}
                             {% endfor %}>
-                        {{ pollen.name }} ({{ pollen.get_category_display }})
+                        {{ pollen.name }}
                     </label>
                 {% endfor %}
             </div>
             <button type="submit" class="btn-save">Сохранить аллергии</button>
         </form>
         
-        <div style="margin-top: 30px;">
+        <div class="buttons-container">
             <a href="{% url 'home' %}" class="btn-back">← На главную</a>
             <a href="{% url 'logout' %}" class="btn-logout">Выйти</a>
         </div>
