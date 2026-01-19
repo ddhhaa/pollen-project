@@ -4,205 +4,54 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import RegisterForm, CITIES, CITY_COORDINATES
 from django.contrib.auth.decorators import login_required
-from datetime import date, timedelta
-from collections import defaultdict
-from app.pollen_forecast import monthly_pollen_forecast
 from django.conf import settings
+from app.pollen_charts import (
+    get_period_dates,
+    get_user_context,
+    get_base_queryset,
+    build_day_chart,
+    build_week_chart,
+    build_month_chart,
+)
+
 
 @login_required(login_url='/login/')
+@login_required(login_url='/login/')
 def home(request):
-
     period = request.GET.get('period', 'day')
-    pollen_type_id = request.GET.get('pollen_type')
 
     today = settings.TEST_DATE
     current_hour = settings.TEST_HOUR
 
-    # ---------- тип пыльцы ----------
-    selected_pollen_type = None
-    if pollen_type_id:
-        selected_pollen_type = PollenType.objects.filter(id=pollen_type_id).first()
+    start_date, end_date = get_period_dates(today, period)
+    user_ctx = get_user_context(request.user)
 
-    # ---------- период ----------
-    if period == 'week':
-        start_date = today
-        end_date = today + timedelta(days=6)
-    elif period == 'month':
-        start_date = today
-        end_date = today + timedelta(days=29)
-    else:
-        start_date = today
-        end_date = today
-    
-    # ---------- пользователь ----------
-    user_profile = UserProfile.objects.get(user=request.user)
-    user_city = user_profile.city
+    data = get_base_queryset(start_date, end_date, user_ctx['city'])
 
-    user_allergy_types = list(
-        PollenType.objects.filter(
-            id__in=user_profile.allergies.values_list(
-                "pollen_type_id", flat=True
-            )
+    if period == 'day':
+        chart_data = build_day_chart(
+            data, user_ctx['pollen_types'], today, current_hour
         )
-    )
-    
-    # ---------- базовый queryset ----------
-    data = PollenData.objects.filter(
-        date__range=(start_date, end_date),
-        city=user_city
-    ).order_by('date', 'hour')
-
-    if user_allergy_types:
-        pollen_types_for_chart = user_allergy_types
+    elif period == 'week':
+        chart_data = build_week_chart(
+            data, user_ctx['pollen_types'], start_date, end_date
+        )
     else:
-        pollen_types_for_chart = PollenType.objects.all()
+        chart_data = build_month_chart(
+            data, user_ctx['pollen_types'], today, end_date
+        )
 
+    return render(request, 'home.html', {
+        'chart_data': chart_data,
+        'period': period,
+        'today_date': today,
+        'start_date': start_date,
+        'end_date': end_date,
+        'current_hour': current_hour if period == 'day' else None,
+        'user_allergy_types': user_ctx['allergy_types'],
+        'all_pollen_types': PollenType.objects.all(),
+    })
 
-    data = data.order_by('date', 'hour')
-
-    context = {}
-
-    # ---------- данные для графика по типам пыльцы ----------
-    chart_data = []
-
-    for pt in pollen_types_for_chart:
-        if period == 'month':
-            continue
-        type_name = pt.name
-        color = pt.color
-        points = []
-
-        if period == 'day':
-            # данные по часам
-            day_data = data.filter(pollen_type=pt, date=today, hour__gte=current_hour, hour__lte=current_hour+5).order_by('hour')
-            for rec in day_data:
-                points.append({
-                    'x': f"{rec.hour:02d}:00",
-                    'y': rec.concentration
-                })  
-
-        elif period == 'week':
-            # среднее за день
-            current_date = start_date
-            while current_date <= end_date:
-                day_records = data.filter(pollen_type=pt, date=current_date)
-                concentrations = [r.concentration for r in day_records]
-                value = sum(concentrations)/len(concentrations) if concentrations else 0
-                points.append({
-                    'x': current_date.strftime('%d.%m'),
-                    'y': value
-                })
-                current_date += timedelta(days=1)
-
-        chart_data.append({
-            'label': type_name,
-            'data': points,
-            'borderColor': color,
-            'backgroundColor': color,
-            'fill': False
-        })
-
-    # ---------- прогноз на месяц ----------
-    if period == 'month':
-        for pt in pollen_types_for_chart:
-            points = []
-            
-            # ---реальные данные ---
-            actual_points = []
-
-            current_date = start_date
-
-            while current_date <= min(today, end_date):
-                day_records = data.filter(
-                    pollen_type=pt,
-                    date=current_date
-                )
-
-                values = [r.concentration for r in day_records]
-                value = sum(values) / len(values) if values else 0
-
-                actual_points.append({
-                    'x': current_date.strftime('%d.%m'),
-                    'y': value
-                })
-
-                current_date += timedelta(days=1)
-
-
-
-            # ---прогноз---
-            forecast_points = []
-
-            forecast_values = monthly_pollen_forecast(pt, today.month)
-
-            for i in range(1, 31):
-                target_date = today + timedelta(days=i)
-
-                value = forecast_values[i % len(forecast_values)]['value']
-
-                forecast_points.append({
-                    'x': target_date.strftime('%d.%m'),
-                    'y': value
-                })
-
-
-            
-            if actual_points:
-                chart_data.append({
-                    'label': pt.name,
-                    'data': actual_points,
-                    'borderColor': pt.color,
-                    'backgroundColor': pt.color,
-                    'fill': False
-                })
-
-            if forecast_points:
-                chart_data.append({
-                    'label': f"{pt.name} (прогноз)",
-                    'data': forecast_points,
-                    'borderColor': pt.color,
-                    'backgroundColor': pt.color,
-                    'fill': False,
-                    'borderDash': [6, 6]
-                })
-
-    context['chart_data'] = chart_data
-
-    data_dict = defaultdict(lambda: defaultdict(list))
-    
-    for item in data:
-        key = f"{item.date.strftime('%Y-%m-%d')}_{item.hour:02d}"
-        data_dict[item.date][item.hour].append({
-            'pollen_type': item.pollen_type.name,
-            'concentration': item.concentration,
-            'hour': item.hour,
-            'city': item.city
-        })
-    
-    data_by_type = defaultdict(list)
-    for item in data:
-        data_by_type[item.pollen_type.name].append({
-            'date': item.date,
-            'hour': item.hour,
-            'concentration': item.concentration
-        })
-
-    context = {
-        "data": data,
-        "data_dict": dict(data_dict),
-        "data_by_type": dict(data_by_type),
-        "chart_data": chart_data,
-        "period": period,
-        "today_date": today,
-        "start_date": start_date,
-        "end_date": end_date,
-        "current_hour": current_hour if period == 'day' else None,
-        "selected_pollen_type": selected_pollen_type,
-        "all_pollen_types": PollenType.objects.all(),
-        "user_allergy_types": user_allergy_types,
-    }
-
-    return render(request, "home.html", context)
 
 def register(request):
     if request.method == "POST":
