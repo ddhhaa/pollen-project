@@ -7,9 +7,8 @@ from django.contrib.auth.decorators import login_required
 from datetime import date, timedelta
 from django.db.models import Avg
 from collections import defaultdict
-
-TEST_DATE = date(2025, 4, 25)
-TEST_HOUR = 10
+from app.pollen_forecast import monthly_pollen_forecast
+from django.conf import settings
 
 @login_required(login_url='/login/')
 def home(request):
@@ -17,8 +16,8 @@ def home(request):
     period = request.GET.get('period', 'day')
     pollen_type_id = request.GET.get('pollen_type')
 
-    today = TEST_DATE
-    current_hour = TEST_HOUR
+    today = settings.TEST_DATE
+    current_hour = settings.TEST_HOUR
 
     # ---------- тип пыльцы ----------
     selected_pollen_type = None
@@ -85,6 +84,25 @@ def home(request):
             'backgroundColor': color,
             'fill': False
         })
+
+    # ---------- прогноз на месяц ----------
+    if period == 'month' and selected_pollen_type:
+        forecast_data = monthly_pollen_forecast(selected_pollen_type, today.month)
+
+        forecast_points = []
+        for item in forecast_data:
+            forecast_points.append({
+                'x': item["date"].strftime('%d.%m'),  # Преобразуем дату в строку
+                'y': item["value"]
+            })
+        
+        chart_data.append({
+            'label': f'{selected_pollen_type.name} (прогноз)',
+            'data': forecast_points,  # Используем преобразованные данные
+            'borderDash': [5, 5],
+            'fill': False
+        })
+
 
     context['chart_data'] = chart_data
 

@@ -1,9 +1,9 @@
 import openmeteo_requests
-from datetime import date, timedelta, datetime
+from datetime import timedelta, datetime
 import numpy as np
 from collections import defaultdict
 from app.models import PollenType, PollenData
-from .views import TEST_DATE
+from django.conf import settings
 
 openmeteo = openmeteo_requests.Client()
 
@@ -13,9 +13,9 @@ def fetch_pollen_data(latitude: float, longitude: float, city: str):
         print("No pollen types in DB")
         return
 
-    today = TEST_DATE
+    today = settings.TEST_DATE
     start_date = today
-    end_date = today + timedelta(days=6)  # 7 дней
+    end_date = today + timedelta(days=6)
 
     hourly_params = [p.openmeteo_code for p in pollen_types]
 
