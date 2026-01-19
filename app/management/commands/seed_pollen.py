@@ -5,7 +5,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         pollen_types = [
             {"name": "Берёза", "code": "birch_pollen", "category": "tree", "color": "#8BC34A"},
-            {"name": "Ольха", "code": "alder_pollen", "category": "tree", "color": "#4CAF50"},
+            {"name": "Ольха", "code": "alder_pollen", "category": "tree", "color": "#5970AA"},
             {"name": "Травы", "code": "grass_pollen", "category": "grass", "color": "#FF9800"},
             {"name": "Амброзия", "code": "ragweed_pollen", "category": "weed", "color": "#F44336"},
             {"name": "Полынь", "code": "mugwort_pollen", "category": "weed", "color": "#9C27B0"},

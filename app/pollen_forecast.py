@@ -1,8 +1,7 @@
 import pandas as pd
-from datetime import date, datetime, timedelta
+from datetime import date
 from app.models import PollenData, PollenType
 import numpy as np
-from django.db.models import Avg
 
 def monthly_pollen_forecast(
     pollen_type: PollenType,
@@ -14,35 +13,35 @@ def monthly_pollen_forecast(
     """
     
     today = date.today()
-    start_year = today.year - years_back
     
     # Забираем исторические данные
     qs = PollenData.objects.filter(
         pollen_type=pollen_type,
-        date__year__gte=start_year,
         date__month=target_month
-    ).values("date", "concentration", "hour")
+    )
     
     if not qs:
         return []
     
     # ---------- 1. Подготовка данных ----------
-    df = pd.DataFrame.from_records(qs)
+    df = pd.DataFrame.from_records(
+        qs.values("date", "concentration")
+    )    
     df["date"] = pd.to_datetime(df["date"])
-    
-    # Добавляем день месяца
+
     df["day"] = df["date"].dt.day
     
     # ---------- 2. Агрегация по дням ----------
-    # Сначала группируем по дате и часу, затем по дню
-    daily_stats = df.groupby(["day", "hour"]).agg({
-        "concentration": ["mean", "std", "count"]
-    }).reset_index()
+    daily_profile = (
+        df.groupby("day")["concentration"]
+        .agg(["mean", "std", "count"])
+        .reset_index()
+    )
     
-    daily_stats.columns = ["day", "hour", "mean", "std", "count"]
+    daily_profile.columns = ["day", "mean", "std", "count"]
     
     # Если данных мало, используем просто среднее по дню
-    if len(daily_stats) < 10:
+    if len(daily_profile) < 10:
         daily_mean = df.groupby("day")["concentration"].mean().reset_index()
         forecast = []
         
@@ -58,7 +57,6 @@ def monthly_pollen_forecast(
     # ---------- 3. Прогнозирование с учетом тренда ----------
     forecast = []
     
-    # Получаем средние значения для каждого дня
     daily_profile = df.groupby("day")["concentration"].agg(['mean', 'std', 'count']).reset_index()
     
     # Заполняем пропущенные дни интерполяцией
@@ -70,24 +68,19 @@ def monthly_pollen_forecast(
     for _, row in daily_profile.iterrows():
         day_num = int(row['day'])
         
-        # Проверяем, существует ли такая дата (например, 31 февраля)
         try:
             forecast_date = date(today.year, target_month, day_num)
         except ValueError:
             continue
         
-        # Базовая прогнозная величина
         base_value = row['mean']
         
-        # Добавляем случайную компоненту на основе стандартного отклонения
         if pd.notna(row['std']) and row['std'] > 0:
-            # Ограничиваем отклонение ±1.5 стандартных отклонения
             noise = np.random.normal(0, min(row['std'], base_value * 0.3))
             forecast_value = max(0, base_value + noise)
         else:
             forecast_value = base_value
         
-        # Определяем уровень уверенности
         if pd.notna(row['count']) and row['count'] >= 3:
             confidence = "high"
         elif pd.notna(row['count']) and row['count'] >= 1:
