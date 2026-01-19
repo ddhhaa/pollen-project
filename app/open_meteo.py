@@ -79,8 +79,8 @@ def fetch_pollen_data(latitude: float, longitude: float, city: str):
     for i, timestamp in enumerate(time_array):
         real_dt = datetime.fromtimestamp(timestamp)
         # Корректировка по today (если нужно)
-        shift = today - real_dt.date()
-        dt = real_dt + timedelta(days=shift.days)
+        dt = real_dt
+
 
         date_key = dt.date()
         hour_key = dt.hour

@@ -44,7 +44,7 @@
 
     <div class="filters">
         <label>Фильтр по типу пыльцы:</label>
-        <select onchange="window.location.href = '?pollen_type=' + this.value">
+        <select onchange="window.location.href = '?period={{ period }}&pollen_type=' + this.value">
             <option value="">Все типы</option>
             {% for pollen_type in all_pollen_types %}
             <option value="{{ pollen_type.id }}" 
