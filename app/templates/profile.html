@@ -24,10 +24,26 @@
             {% endif %}
         </div>
         
+        <h3>Изменить город</h3>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-field">
+                <label for="city">Выберите город:</label>
+                <select name="city" id="city" class="form-select">
+                    {% for city_code, city_name in cities %}
+                        <option value="{{ city_code }}" 
+                            {% if user_profile.city == city_code %}selected{% endif %}>
+                            {{ city_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn-save" name="save_city">Сохранить город</button>
+        </form>
+        
         <h3>Мои аллергии</h3>
         <form method="post">
             {% csrf_token %}
-            
             <div class="allergies-list">
                 {% for pollen in all_pollen %}
                     <label class="checkbox-label">
@@ -41,7 +57,7 @@
                     </label>
                 {% endfor %}
             </div>
-            <button type="submit" class="btn-save">Сохранить аллергии</button>
+            <button type="submit" class="btn-save" name="save_allergies">Сохранить аллергии</button>
         </form>
         
         <div class="buttons-container">

@@ -1,11 +1,10 @@
 from django.shortcuts import render, redirect
 from .models import PollenData, UserProfile, PollenType, UserAllergy
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
-from .forms import RegisterForm
+from .forms import RegisterForm, CITIES, CITY_COORDINATES
 from django.contrib.auth.decorators import login_required
 from datetime import date, timedelta
-from django.db.models import Avg
 from collections import defaultdict
 from app.pollen_forecast import monthly_pollen_forecast
 from django.conf import settings
@@ -35,13 +34,9 @@ def home(request):
         start_date = today
         end_date = today
     
-    # ---------- базовый queryset ----------
-    data = PollenData.objects.filter(
-        date__range=(start_date, end_date)
-    ).order_by('date', 'hour')
-
     # ---------- пользователь ----------
     user_profile = UserProfile.objects.get(user=request.user)
+    user_city = user_profile.city
 
     user_allergy_types = list(
         PollenType.objects.filter(
@@ -50,6 +45,12 @@ def home(request):
             )
         )
     )
+    
+    # ---------- базовый queryset ----------
+    data = PollenData.objects.filter(
+        date__range=(start_date, end_date),
+        city=user_city
+    ).order_by('date', 'hour')
 
     if user_allergy_types:
         pollen_types_for_chart = user_allergy_types
@@ -107,61 +108,63 @@ def home(request):
             points = []
             
             # ---реальные данные ---
+            actual_points = []
+
             current_date = start_date
-            days_with_data = 0
-            
+
             while current_date <= min(today, end_date):
                 day_records = data.filter(
                     pollen_type=pt,
                     date=current_date
                 )
-                values = [r.concentration for r in day_records if r.concentration > 0]
-                if values:
-                    value = sum(values) / len(values)
-                    days_with_data += 1
-                else:
-                    value = 0
-                
-                points.append({
+
+                values = [r.concentration for r in day_records]
+                value = sum(values) / len(values) if values else 0
+
+                actual_points.append({
                     'x': current_date.strftime('%d.%m'),
-                    'y': value,
-                    'type': 'actual'
+                    'y': value
                 })
-                
+
                 current_date += timedelta(days=1)
 
-            # ---прогноз---
-            forecast_data = monthly_pollen_forecast(
-                pt,
-                today.month
-            )
-            
-            forecast_data.sort(key=lambda x: x['date'])
 
-            for item in forecast_data:
-                forecast_day = item['date'].day
-                
-                try:
-                    item_date = date(today.year, today.month, forecast_day)
-                except ValueError:
-                    continue
-                
-                if start_date <= item_date <= end_date and item_date > today:
-                    points.append({
-                        'x': item_date.strftime('%d.%m'),
-                        'y': item['value'],
-                        'type': 'forecast',
-                        'confidence': item.get('confidence', 'medium')
-                    })
+
+            # ---прогноз---
+            forecast_points = []
+
+            forecast_values = monthly_pollen_forecast(pt, today.month)
+
+            for i in range(1, 31):
+                target_date = today + timedelta(days=i)
+
+                value = forecast_values[i % len(forecast_values)]['value']
+
+                forecast_points.append({
+                    'x': target_date.strftime('%d.%m'),
+                    'y': value
+                })
+
+
             
-            chart_data.append({
-                'label': f"{pt.name} (прогноз)",
-                'data': points,
-                'borderColor': pt.color,
-                'backgroundColor': pt.color + '80',
-                'fill': False,
-                'borderDash': [5, 5] if days_with_data < 3 else []
-            })
+            if actual_points:
+                chart_data.append({
+                    'label': pt.name,
+                    'data': actual_points,
+                    'borderColor': pt.color,
+                    'backgroundColor': pt.color,
+                    'fill': False
+                })
+
+            if forecast_points:
+                chart_data.append({
+                    'label': f"{pt.name} (прогноз)",
+                    'data': forecast_points,
+                    'borderColor': pt.color,
+                    'backgroundColor': pt.color,
+                    'fill': False,
+                    'borderDash': [6, 6]
+                })
 
     context['chart_data'] = chart_data
 
@@ -206,12 +209,16 @@ def register(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-
-            # создаём профиль
+            
+            city = form.cleaned_data.get("city")
+            coordinates = CITY_COORDINATES.get(city, {'latitude': 55.7558, 'longitude': 37.6176})
+            
             UserProfile.objects.create(
                 user=user,
                 age=form.cleaned_data.get("age"),
-                city=form.cleaned_data.get("city"),
+                city=city,
+                latitude=coordinates['latitude'],
+                longitude=coordinates['longitude']
             )
 
             login(request, user)
@@ -247,9 +254,8 @@ def profile(request):
     all_pollen_types = PollenType.objects.all()
     
     if request.method == "POST":
-        # Обработка выбора аллергенов
         selected_ids = request.POST.getlist('allergies')
-        user_profile.allergens.clear()  # Очищаем старые
+        user_profile.allergens.clear()
         
         for pollen_id in selected_ids:
             pollen_type = PollenType.objects.get(id=pollen_id)
@@ -258,10 +264,20 @@ def profile(request):
                 pollen_type=pollen_type,
                 sensitivity=3
             )
+        if 'city' in request.POST:
+                city = request.POST.get('city')
+                coordinates = CITY_COORDINATES.get(city, {'latitude': 55.7558, 'longitude': 37.6176})
+                
+                user_profile.city = city
+                user_profile.latitude = coordinates['latitude']
+                user_profile.longitude = coordinates['longitude']
+                user_profile.save()
+
         return redirect('profile')
     
     return render(request, 'profile.html', {
         'user_profile': user_profile,
         'all_pollen': all_pollen_types,
         'user_allergies': user_allergies,
+        'cities': CITIES,
     })
