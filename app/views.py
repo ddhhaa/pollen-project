@@ -24,7 +24,7 @@ def home(request):
     today = settings.TEST_DATE
     current_hour = settings.TEST_HOUR
 
-    user_profile = UserProfile.objects.get(user=request.user)
+    user_profile, _ = UserProfile.objects.get_or_create(user=request.user)
     start_date, end_date = get_period_dates(today, period)
     user_ctx = get_user_context(request.user)
 

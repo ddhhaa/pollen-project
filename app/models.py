@@ -197,13 +197,6 @@ class Recommendation(models.Model):
     title = models.CharField(max_length=200, verbose_name="Заголовок")
     text = models.TextField(verbose_name="Текст рекомендации")
     
-
-    # Особые отметки
-    # for_asthma = models.BooleanField(default=False, verbose_name="Для астматиков")
-    
-    # Активность
-    # is_active = models.BooleanField(default=True, verbose_name="Активно")
-    
     class Meta:
         verbose_name = "Рекомендация"
         verbose_name_plural = "Рекомендации"
