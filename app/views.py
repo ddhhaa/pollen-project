@@ -13,9 +13,10 @@ from app.pollen_charts import (
     build_week_chart,
     build_month_chart,
 )
+from app.recommendations import get_user_recommendations
 
 
-@login_required(login_url='/login/')
+
 @login_required(login_url='/login/')
 def home(request):
     period = request.GET.get('period', 'day')
@@ -23,8 +24,15 @@ def home(request):
     today = settings.TEST_DATE
     current_hour = settings.TEST_HOUR
 
+    user_profile = UserProfile.objects.get(user=request.user)
     start_date, end_date = get_period_dates(today, period)
     user_ctx = get_user_context(request.user)
+
+    recommendations = get_user_recommendations(
+    user_profile=user_profile,
+    date=today,
+    city=user_ctx['city']
+)
 
     data = get_base_queryset(start_date, end_date, user_ctx['city'])
 
@@ -50,6 +58,7 @@ def home(request):
         'current_hour': current_hour if period == 'day' else None,
         'user_allergy_types': user_ctx['allergy_types'],
         'all_pollen_types': PollenType.objects.all(),
+        'recommendations': recommendations,
     })
 
 

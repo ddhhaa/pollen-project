@@ -40,6 +40,20 @@
         </div>
     </div>
 
+    <h2>Рекомендации</h2>
+
+    <ul>
+    {% for rec in recommendations %}
+        <li>
+        <strong>{{ rec.title }}</strong><br>
+        {{ rec.text }}
+        </li>
+    {% empty %}
+        <li>На сегодня специальных рекомендаций нет</li>
+    {% endfor %}
+    </ul>
+
+
     <!-- <h2>Таблица данных</h2>
 
     <div class="filters">
