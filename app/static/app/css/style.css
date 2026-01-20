@@ -66,3 +66,88 @@ h1{
 .chart-container h2{
     text-align: center;
 }
+
+h2 {
+    margin-top: 40px;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #2c3e50;
+    border-bottom: 2px solid #6bac55;
+    padding-bottom: 10px;
+}
+
+/* Список рекомендаций */
+ul {
+    list-style-type: none;
+    padding: 0;
+    max-width: 800px;
+    margin: 20px auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    padding: 25px;
+}
+
+ul li {
+    background: #f8f9fa;
+    margin-bottom: 15px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    border-left: 4px solid #6bac55;
+    transition: all 0.3s ease;
+}
+
+ul li:hover {
+    transform: translateX(5px);
+    box-shadow: 0 5px 15px rgba(107, 172, 85, 0.2);
+    background: #f1f8e9;
+}
+
+ul li:last-child {
+    margin-bottom: 0;
+}
+
+ul li strong {
+    color: #2c3e50;
+    font-size: 18px;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+ul li br {
+    display: none;
+}
+
+ul li {
+    color: #555;
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+/* Сообщение о пустых рекомендациях */
+ul li:only-child {
+    text-align: center;
+    color: #7f8c8d;
+    font-style: italic;
+    padding: 30px;
+    background: #f9f9f9;
+    border-left: 4px solid #bdc3c7;
+}
+
+ul li:only-child strong {
+    display: inline;
+    font-size: 16px;
+}
+
+h2 {
+    text-align: center !important;
+    margin: 40px auto 20px !important;
+    font-size: 24px !important;
+    color: #2c3e50 !important;
+    border-bottom: 2px solid #6bac55 !important;
+    padding-bottom: 10px !important;
+    width: fit-content !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
