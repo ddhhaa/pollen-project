@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-8bbh%!&v_m24r2j7u_rfr#+0n(&4((9f#$&(-joq_1i*29ug_8'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'ddhhaa.pythonanywhere.com', '127.0.0.1'
@@ -124,5 +124,5 @@ STATIC_URL = 'static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-TEST_DATE = date(2025, 4, 25)
+TEST_DATE = date(2024, 4, 30)
 TEST_HOUR = 10
